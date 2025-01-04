@@ -25,6 +25,7 @@ function App() {
     fetchData();
   }, []);
 
+  
   const fetchData = async () => {
     setLoading(true);
     setError(false);
