@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { RotatingLines } from "react-loader-spinner";
 import axios from "axios";
@@ -17,15 +16,15 @@ function App() {
   const [selectedLists, setSelectedLists] = useState([]);
   const [newListView, setNewListView] = useState(false);
   const [newListKey, setNewListKey] = useState(null);
+  const [displayedLists, setDisplayedLists] = useState([]);
   const [showCreateNewList, setShowCreateNewList] = useState(true);
 
-  console.log(data)
-  console.log(newListKey)
+  console.log(data);
+  console.log(newListKey);
   useEffect(() => {
     fetchData();
   }, []);
 
-  
   const fetchData = async () => {
     setLoading(true);
     setError(false);
@@ -67,42 +66,41 @@ function App() {
     }
 
     setShowCreateNewList(false);
-    const [firstList, secondList] = selectedLists.sort((a, b) => a - b);
+
+    // Get the selected lists and sort based on their order in `listOrder`
+    const [firstList, secondList] = selectedLists
+      .map((list) => parseInt(list, 10))
+      .sort(
+        (a, b) =>
+          listOrder.indexOf(a.toString()) - listOrder.indexOf(b.toString())
+      );
+
+    // Generate a new list number for the new list
     const nextListNumber = Math.max(...Object.keys(lists).map(Number)) + 1;
     const newListKey = nextListNumber.toString();
     setNewListKey(newListKey);
 
-    console.log(secondList);
-    setLists((prev) => {
-      const updatedLists = { ...prev };
-      const newOrder = [];
+    // Update `lists` and add the new list as empty initially
+    setLists((prev) => ({
+      ...prev,
+      [newListKey]: [],
+    }));
 
-      let inserted = false;
-      Object.keys(updatedLists)
-        .sort((a, b) => a - b)
-        .forEach((key) => {
-          newOrder.push(key);
-          if (key === firstList.toString() && !inserted) {
-            newOrder.push(newListKey);
-            inserted = true;
-          }
-        });
-
-      const reorderedLists = {};
-      newOrder.forEach((key) => {
-        reorderedLists[key] = updatedLists[key] || [];
-      });
-      reorderedLists[newListKey] = [];
-
-      return reorderedLists;
-    });
-
+    // Update `listOrder` to insert the new list between the selected lists
     setListOrder((prevOrder) => {
-      const newOrder = [...prevOrder];
-      const insertIndex = newOrder.indexOf(firstList.toString()) + 1;
-      newOrder.splice(insertIndex, 0, newListKey);
-      return newOrder;
+      const firstIndex = prevOrder.indexOf(firstList.toString());
+      const updatedOrder = [...prevOrder];
+      updatedOrder.splice(firstIndex + 1, 0, newListKey); // Insert after the first list
+      return updatedOrder;
     });
+
+    setNewListView(true);
+    // Update `displayedLists` to only show the selected and new lists
+    setDisplayedLists([
+      firstList.toString(),
+      newListKey,
+      secondList.toString(),
+    ]);
 
     setNewListView(true);
   };
@@ -162,9 +160,10 @@ function App() {
       return updatedLists;
     });
 
-    setListOrder((prevOrder) => {
-      return [...prevOrder];
-    });
+    setListOrder((prevOrder) => [...prevOrder]);
+
+    // Restore all lists in the displayed order
+    setDisplayedLists([...listOrder]);
   };
 
   return (
@@ -203,11 +202,10 @@ function App() {
             {newListView ? (
               <div>
                 <div className="list-creation-view">
-                  {listOrder.map((listNumber) => (
+                  {displayedLists.map((listNumber) => (
                     <div key={listNumber} className="list-container">
                       <h3>
-                        List {listNumber} ({lists[listNumber]?.length || 0}{" "}
-                        items)
+                        List {listNumber} ({lists[listNumber]?.length || 0})
                       </h3>
                       <div className="list-item-container">
                         {lists[listNumber]?.map((item) => (
