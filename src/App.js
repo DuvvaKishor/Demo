@@ -105,7 +105,7 @@ function App() {
     setNewListView(true);
   };
 
-  const handleMoveItem = (item, fromList, toList = "3") => {
+  const handleMoveItem = (item, fromList, toList) => {
     setLists((prevLists) => {
       const updatedLists = { ...prevLists };
 
@@ -114,7 +114,7 @@ function App() {
         (i) => i.id !== item.id
       );
 
-      // Ensure the target list exists in the lists object
+      // Ensure the target list exists in the `lists` object
       if (!updatedLists[toList]) {
         updatedLists[toList] = [];
       }
@@ -128,15 +128,8 @@ function App() {
       return {
         ...updatedLists,
         [fromList]: updatedFromList, // Update the source list
+        [toList]: updatedLists[toList], // Update the target list
       };
-    });
-
-    // Ensure List 3 is included in the list order
-    setListOrder((prevOrder) => {
-      if (!prevOrder.includes(toList)) {
-        return [...prevOrder, toList];
-      }
-      return prevOrder;
     });
   };
 
@@ -202,60 +195,54 @@ function App() {
             {newListView ? (
               <div>
                 <div className="list-creation-view">
-                  {displayedLists.map((listNumber) => (
-                    <div key={listNumber} className="list-container">
-                      <h3>
-                        List {listNumber} ({lists[listNumber]?.length || 0})
-                      </h3>
-                      <div className="list-item-container">
-                        {lists[listNumber]?.map((item) => (
-                          <div key={item.id} className="list-item">
-                            <span className="name">{item.name}</span>
-                            <span className="description">
-                              {item.description}
-                            </span>
+                  {displayedLists.map((listNumber, index) => (
+                    <div key={listNumber} style={{ margin: "16px" }}>
+                      <div className="list-container">
+                        <h3>
+                          List {listNumber} ({lists[listNumber]?.length || 0})
+                        </h3>
+                        <div className="list-item-container">
+                          {lists[listNumber]?.map((item) => (
+                            <div key={item.id} className="list-item">
+                              <span className="name">{item.name}</span>
+                              <span className="description">
+                                {item.description}
+                              </span>
 
-                            {/* Arrow buttons for moving items */}
-                            <div className="arrow-buttons">
-                              {listNumber === "1" && (
-                                <button
-                                  className="arrow"
-                                  onClick={() => handleMoveItem(item, "1", "3")}
-                                >
-                                  →
-                                </button>
-                              )}
-                              {listNumber === "2" && (
-                                <button
-                                  className="arrow"
-                                  onClick={() => handleMoveItem(item, "2", "3")}
-                                >
-                                  ←
-                                </button>
-                              )}
-                              {listNumber === "3" && (
-                                <div className="arrow-buttons-row">
+                              {/* Arrow buttons for moving items */}
+                              <div className="arrow-buttons">
+                                {index > 0 && (
                                   <button
-                                    className="arrow start-arrow"
+                                    className="arrow"
                                     onClick={() =>
-                                      handleMoveItem(item, "3", "1")
+                                      handleMoveItem(
+                                        item,
+                                        listNumber,
+                                        displayedLists[index - 1]
+                                      )
                                     }
                                   >
                                     ←
                                   </button>
+                                )}
+                                {index < displayedLists.length - 1 && (
                                   <button
-                                    className="arrow end-arrow"
+                                    className="arrow"
                                     onClick={() =>
-                                      handleMoveItem(item, "3", "2")
+                                      handleMoveItem(
+                                        item,
+                                        listNumber,
+                                        displayedLists[index + 1]
+                                      )
                                     }
                                   >
                                     →
                                   </button>
-                                </div>
-                              )}
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     </div>
                   ))}
